@@ -1,0 +1,38 @@
+﻿<select @onchange="Selected">
+	<option value=""></option>
+	@foreach (var generator in Fields)
+	{
+		<option>@generator.Type</option>
+	}
+</select>
+
+@code {
+	[Parameter]
+	public EventCallback<Field> OnSelected { get; set; }
+
+	private IEnumerable<Generator> Fields { get; } = new Generator[]
+	{
+		new("String", () => new StringField()),
+		new("Number", () => new NumberField()),
+		new("Float", () => new FloatField())
+	};
+
+	private async Task Selected(ChangeEventArgs args)
+	{
+		if(args.Value is not string {Length: > 0} type) return;
+		if(Fields.FirstOrDefault(g=>g.Type == type) is not {Generation: {}generator}) return;
+		await OnSelected.InvokeAsync(generator.Invoke());
+	}
+
+	private sealed class Generator
+	{
+		public Generator(string type, Func<Field> generation)
+		{
+			Type = type;
+			Generation = generation;
+		}
+
+		public string Type { get; set; }
+		public Func<Field> Generation { get; set; }
+	}
+}

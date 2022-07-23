@@ -1,0 +1,9 @@
+﻿<div>
+	<input type="text" @bind="Field.Name"/>
+	<input type="text" @bind="Field.Value"/>
+</div>
+
+@code {
+	[Parameter]
+	public Field Field { get; set; }
+}

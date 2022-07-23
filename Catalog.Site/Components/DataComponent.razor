@@ -1,0 +1,39 @@
+﻿<div class="card">
+	<h5>@Data.Type</h5>
+	<br/>
+	@foreach (var field in @Data.Fields)
+	{
+		<FieldComponent Field="field"/>
+	}
+	<div>
+		@if (IsCreatingField)
+		{
+			<FieldSelector OnSelected="AddField"/>
+		}
+		else
+		{
+			<button @onclick="OpenFieldSelector">Add</button>
+		}
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public Data Data { get; set; }
+
+	private bool IsCreatingField { get; set; }
+
+
+	private void OpenFieldSelector()
+	{
+		IsCreatingField = true;
+		StateHasChanged();
+	}
+
+	private void AddField(Field field)
+	{
+		Data.Fields.Add(field);
+		IsCreatingField = false;
+		StateHasChanged();
+	}
+}
