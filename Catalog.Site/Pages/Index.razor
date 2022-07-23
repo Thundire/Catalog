@@ -1,3 +1,29 @@
 ﻿@page "/"
 
 <PageTitle>Index</PageTitle>
+
+<div>
+	<div>
+		<input type="text" @bind="DataType"/>
+		<button @onclick="AddData">Add</button>
+	</div>
+	
+	<div>
+		@foreach (var data in Data)
+		{
+			<DataComponent Data=@data/>
+		}
+	</div>
+</div>
+
+@code{
+	private List<Data> Data { get; } = new();
+
+	private string? DataType { get; set; }
+
+	private void AddData()
+	{
+		if (DataType is not {Length: > 0}) return;
+		Data.Add(new(){Type = DataType});
+	}
+}
