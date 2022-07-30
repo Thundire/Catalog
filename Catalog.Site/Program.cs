@@ -1,8 +1,12 @@
+using Catalog.Site.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://localhost:5120");
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+builder.Services.AddSingleton<DataStorage>();
 
 var app = builder.Build();
 
