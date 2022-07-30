@@ -6,14 +6,7 @@
 		<FieldComponent Field="field"/>
 	}
 	<div>
-		@if (IsCreatingField)
-		{
-			<FieldSelector OnSelected="AddField"/>
-		}
-		else
-		{
-			<button @onclick="OpenFieldSelector">Add</button>
-		}
+		<button @onclick="AddField">Add</button>
 	</div>
 </div>
 
@@ -21,19 +14,10 @@
 	[Parameter]
 	public Data Data { get; set; }
 
-	private bool IsCreatingField { get; set; }
-
-
-	private void OpenFieldSelector()
+	private void AddField()
 	{
-		IsCreatingField = true;
-		StateHasChanged();
-	}
-
-	private void AddField(Field field)
-	{
+		Field field = new();
 		Data.Fields.Add(field);
-		IsCreatingField = false;
 		StateHasChanged();
 	}
 }
