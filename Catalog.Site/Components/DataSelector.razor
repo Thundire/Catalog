@@ -57,6 +57,8 @@ Data Types:
 
 	[Parameter]
 	public EventCallback<Data> OnDataCreated { get; set; }
+	[Parameter]
+	public EventCallback<string> OnDataTypeSelected { get; set; }
 
 	protected override void OnInitialized()
 	{
@@ -103,6 +105,8 @@ Data Types:
 	void SelectType(string type)
 	{
 		SelectedType = type;
+		if(OnDataTypeSelected.HasDelegate)
+			OnDataTypeSelected.InvokeAsync(type);
 	}
 
 	string IsSelectedMap(string map)

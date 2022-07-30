@@ -5,7 +5,7 @@
 
 <div>
 	<div class="mb-4">
-		<DataSelector OnDataCreated="Add"/>
+		<DataSelector OnDataCreated="Add" OnDataTypeSelected="LoadData"/>
 	</div>
 	
 	<div>
@@ -23,6 +23,17 @@
 	{
 		var id = DataStorage.Add(data);
 		if(id != Guid.Empty) Data.Add(data);
+	}
+
+	private void LoadData(string type)
+	{
+		var data = DataStorage.GetData(type);
+		Data.Clear();
+		if (data.Count() > 0)
+		{
+			Data.AddRange(data.Select(d=>d.Item2));
+		}
+		StateHasChanged();
 	}
 
 }
