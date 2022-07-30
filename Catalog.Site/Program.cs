@@ -6,7 +6,9 @@ builder.WebHost.UseUrls("http://localhost:5120");
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-builder.Services.AddSingleton<DataStorage>();
+builder.Services
+    .AddSingleton<DataStorage>()
+    .AddSingleton<DataTypes>();
 
 var app = builder.Build();
 

@@ -1,0 +1,123 @@
+﻿@inject DataTypes TypesStorage;
+
+Data Types:
+
+<div>
+	<div class="d-flex">
+		<div class="btn-group" role="group">
+			@foreach (var type in DataTypes)
+			{
+				<button class="btn @IsSelectedType(type)"
+				        @onclick=@( () => SelectType(type) )>
+					@type
+				</button>
+			}
+		
+			@if (!IsOpenAddType)
+			{
+				<button class="btn btn-secondary" @onclick="OpenAddType">+</button>
+			}
+		</div>
+		@if (IsOpenAddType)
+		{
+			<div class="ms-lg-1">
+				<input type="text" @bind="DataType" />
+				<button class="btn btn-secondary" @onclick="AddType">Add</button>
+			</div>
+		}
+	</div>
+	<br />
+	@if (Maps.Count > 0)
+	{
+		<div>
+			<div class="btn-group" role="group">
+				@foreach (var type in Maps)
+				{
+					<button class="btn @IsSelectedMap(type)"
+					        @onclick=@( () => SelectMap(type) )>
+						@type
+					</button>
+				}
+			</div>
+		</div>
+	}
+	<br/>
+	<button class="btn btn-primary" @onclick="AddData">Add Data</button>
+</div>
+
+@code {
+	private string? DataType { get; set; }
+
+	private List<string> DataTypes { get; set; }
+	private List<string> Maps { get; set; }
+
+	private string? SelectedType { get; set; }
+	private string? SelectedMap { get; set; }
+	private bool IsOpenAddType { get; set; }
+
+	[Parameter]
+	public EventCallback<Data> OnDataCreated { get; set; }
+
+	protected override void OnInitialized()
+	{
+		DataTypes = TypesStorage.Types.ToList();
+		Maps = new();
+	}
+
+	protected override void OnAfterRender(bool firstRender)
+	{
+		if (DataTypes.Count == 1)
+			SelectedType = DataTypes[0];
+		if (SelectedType is not null)
+		{
+			Maps = TypesStorage.Maps(SelectedType).ToList();
+		}
+	}
+
+	private void AddData()
+	{
+		if (SelectedType is not { Length: > 0 }) return;
+		
+		OnDataCreated.InvokeAsync(
+			SelectedMap is not null 
+				? TypesStorage.GetBaseMap(SelectedType, SelectedMap) 
+				: new Data { Type = DataType });
+	}
+
+	private void AddType()
+	{
+		var dataType = DataType;
+		if (dataType is not { Length: > 0 }) return;
+		if (!TypesStorage.Add(dataType)) return;
+		DataTypes.Add(dataType);
+		SelectedType = dataType;
+		IsOpenAddType = false;
+		StateHasChanged();
+	}
+
+	string IsSelectedType(string type)
+	{
+		return type == SelectedType ? "btn-primary" : "btn-secondary";
+	}
+
+	void SelectType(string type)
+	{
+		SelectedType = type;
+	}
+
+	string IsSelectedMap(string map)
+	{
+		return map == SelectedMap ? "btn-primary" : "btn-secondary";
+	}
+
+	void SelectMap(string map)
+	{
+		SelectedMap = map;
+	}
+
+	private void OpenAddType()
+	{
+		IsOpenAddType = true;
+		StateHasChanged();
+	}
+}

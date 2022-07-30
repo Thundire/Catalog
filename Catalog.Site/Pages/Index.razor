@@ -1,11 +1,11 @@
 ﻿@page "/"
+@inject DataStorage DataStorage;
 
 <PageTitle>Index</PageTitle>
 
 <div>
-	<div>
-		<input type="text" @bind="DataType"/>
-		<button @onclick="AddData">Add</button>
+	<div class="mb-4">
+		<DataSelector OnDataCreated="Add"/>
 	</div>
 	
 	<div>
@@ -19,11 +19,10 @@
 @code{
 	private List<Data> Data { get; } = new();
 
-	private string? DataType { get; set; }
-
-	private void AddData()
+	private void Add(Data data)
 	{
-		if (DataType is not {Length: > 0}) return;
-		Data.Add(new(){Type = DataType});
+		var id = DataStorage.Add(data);
+		if(id != Guid.Empty) Data.Add(data);
 	}
+
 }
