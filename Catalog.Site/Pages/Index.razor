@@ -5,10 +5,10 @@
 
 <div>
 	<div class="mb-4">
-		<DataSelector OnDataCreated="Add" OnDataTypeSelected="LoadData"/>
+		<DataSelector SelectedDataTypeChanged="UpdateDataSelection"/>
 	</div>
-	
-	<div>
+	<button class="btn btn-primary" @onclick="AddData">Add Data</button>
+	<div class="mt-4">
 		@foreach (var data in Data)
 		{
 			<DataComponent Data=@data/>
@@ -19,21 +19,36 @@
 @code{
 	private List<Data> Data { get; } = new();
 
-	private void Add(Data data)
+	private string? SelectedDataType { get; set; }
+
+	private void AddData()
 	{
+		if (SelectedDataType is not { Length: > 0 }) return;
+		
+		Data data =  new Data { Type = SelectedDataType };
+
 		var id = DataStorage.Add(data);
 		if(id != Guid.Empty) Data.Add(data);
+		StateHasChanged();
 	}
 
-	private void LoadData(string type)
+	private void LoadData(string? type)
 	{
-		var data = DataStorage.GetData(type);
 		Data.Clear();
+		if(type is null) return;
+
+		var data = DataStorage.GetData(type);
 		if (data.Count() > 0)
 		{
 			Data.AddRange(data.Select(d=>d.Item2));
 		}
 		StateHasChanged();
+	}
+
+	private async Task UpdateDataSelection(string? type)
+	{
+		SelectedDataType = type;
+		LoadData(type);
 	}
 
 }
