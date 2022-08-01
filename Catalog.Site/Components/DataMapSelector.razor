@@ -1,0 +1,132 @@
+﻿<div class="card d-inline-flex mt-2 mb-2" style="min-width: 45%">
+	<div class="d-flex flex-row btn-group mb-2">
+		<button class="btn btn-secondary" @onclick="PreviousMap">Prev</button>
+
+		<div class="flex-fill me-2 ms-2">
+			@if (Fields.Count == 0)
+			{
+				<div class="text-center"><span>Empty</span></div>
+			}
+			@foreach (var field in Fields)
+			{
+				<div>
+					<input type="text" placeholder="Name" @bind="field.Name"/>
+					<input type="text" placeholder="Value" @bind="field.Value"/>
+				</div>
+			}
+			<div class="mt-2">
+				<button class="btn btn-secondary" @onclick="AddField">Add Field</button>
+				<button class="btn btn-secondary" @onclick="SaveMap">Save Template</button>
+			</div>
+		</div>
+		
+		<button class="btn btn-secondary" @onclick="NextMap">Next</button>
+	</div>
+
+	<button class="btn btn-primary" @onclick="Save">Save</button>
+</div>
+
+@code {
+	private List<DataValue> Fields { get; set; } = new();
+	private Dictionary<string, string> ValuesCache { get; } = new();
+	private List<DataMap> Maps { get; set; }
+	private DataMap SelectedMap { get; set; }
+	private int Index { get; set; }
+	public string? DataType { get; set; }
+	[Parameter]
+	public EventCallback<Data> OnDataSave { get; set; }
+
+	private void NextMap()
+	{
+		if (Maps.Count == 1) return;
+		if (Index < Maps.Count - 1)
+		{
+			Index++;
+			SelectedMap = Maps[Index];
+			ChangeDataMap(SelectedMap);
+		}
+		StateHasChanged();
+	}
+
+	private void PreviousMap()
+	{
+		if (Maps.Count == 1) return;
+		if (Index > 0)
+		{
+			Index--;
+			SelectedMap = Maps[Index];
+			ChangeDataMap(SelectedMap);
+		}
+		StateHasChanged();
+	}
+
+	private void Save()
+	{
+		OnDataSave.InvokeAsync(new() { Type = DataType, Fields = Fields.Select(f => new Field() { Name = f.Name, Value = f.Value }).ToList() });
+	}
+
+	public Task UpdateMaps(string? dataType)
+	{
+		if (dataType is null)
+		{
+			return Task.CompletedTask;
+		}
+		Maps = new()
+		{
+			DataMap.Empty,
+			new DataMap(new []{"Title", "Description", "Author"}),
+			new DataMap(new []{"Title", "Author"})
+		};
+		SelectedMap = Maps[0];
+		Index = 0;
+		DataType = dataType;
+		Fields.Clear();
+		return Task.CompletedTask;
+	}
+
+	private void ChangeDataMap(DataMap map)
+	{
+		var fields = Fields.Where(f => f.Name is {Length:>0}).ToArray();
+		foreach (var field in fields)
+		{
+			ValuesCache[field.Name] = field.Value;
+			field.Saved = true;
+		}
+
+		var notSaved = fields.Where(f => !f.Saved).ToArray();
+		if (notSaved.Length > 0)
+		{
+			foreach (var (name, value, _) in notSaved)
+			{
+				ValuesCache.Add(name, value);
+			}
+		}
+
+		Fields.Clear();
+
+		if (map == DataMap.Empty) return;
+
+		Fields.AddRange(map.Map.Select(f => new DataValue(f, ValuesCache.GetValueOrDefault(f))));
+	}
+
+	record DataValue(string? Name = null, string? Value = null, bool Saved = false)
+	{
+		public string? Name { get; set; } = Name;
+		public string? Value { get; set; } = Value;
+		public bool Saved { get; set; } = Saved;
+	}
+
+	private void AddField()
+	{
+		Fields.Add(new());
+		StateHasChanged();
+	}
+
+	private void SaveMap()
+	{
+		var map = Fields.Where(f => f.Name is {Length:>0}).Select(f => f.Name!).ToArray();
+		if(map.Length == 0) return;
+		var dataMap = new DataMap(map);
+		Maps.Add(dataMap);
+	}
+}
